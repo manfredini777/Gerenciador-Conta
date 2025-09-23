@@ -1,2 +1,5 @@
-/JavaApplication7/nbproject/private/
-/dist/
+/nbproject/private/ 
+/build/ 
+/dist/ 
+/nbbuild/ 
+/nbdist/
