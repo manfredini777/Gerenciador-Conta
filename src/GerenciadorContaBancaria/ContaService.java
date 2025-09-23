@@ -1,58 +1,47 @@
 package GerenciadorContaBancaria;
 
-import java.io.*;
-import java.util.ArrayList; 
+import dao.ContaDAO;
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class ContaService {
-    private ArrayList<ContaCorrente> contas = new ArrayList<>();
 
-    // Retorna todas as contas
+    private List<ContaCorrente> contas; // Mantém uma cópia em memória para a GUI
+    private ContaDAO contaDAO;
+
+    public ContaService() {
+        this.contaDAO = new ContaDAO();
+        // Na inicialização, carrega tudo do banco de dados
+        this.contas = this.contaDAO.listar(); 
+    }
+
     public List<ContaCorrente> getContas() {
-        return contas;
+        return this.contas;
     }
-
-    // Adiciona nova conta na memória
+    
     public void adicionarConta(ContaCorrente conta) {
-        contas.add(conta);
+        this.contaDAO.inserir(conta); // 1. Insere no banco
+        this.contas.add(conta);       // 2. Adiciona na lista em memória
     }
 
-    // Carregar contas do arquivo
-    public void carregarContas(String caminhoArquivo) throws IOException {
-        contas.clear();
-        try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
-            String linha;
-            while ((linha = br.readLine()) != null) {
-                String[] dados = linha.split(",");
-                int numero = Integer.parseInt(dados[0].trim());
-                String titular = dados[1].trim();
-                double saldo = Double.parseDouble(dados[2].trim());
-                contas.add(new ContaCorrente(numero, titular, saldo));
-            }
-        }
-    }
-
-    // Salvar contas em arquivo
-    public void salvarContas(String caminhoArquivo) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoArquivo))) {
-            for (ContaCorrente conta : contas) {
-                bw.write(conta.getNumero() + "," + conta.getTitular() + "," + conta.getSaldo());
-                bw.newLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Operação de saque
-    public void sacar(ContaCorrente conta, double valor) throws SaldoInsuficienteException {
-        conta.sacar(valor);
-        salvarContas("conta_atualizada.txt");
-    }
-
-    // Operação de depósito
     public void depositar(ContaCorrente conta, double valor) {
         conta.depositar(valor);
-        salvarContas("conta_atualizada.txt");
+        this.contaDAO.atualizarSaldo(conta.getNumero(), conta.getSaldo()); // Atualiza no banco
+    }
+
+    public void sacar(ContaCorrente conta, double valor) throws SaldoInsuficienteException {
+        conta.sacar(valor);
+        this.contaDAO.atualizarSaldo(conta.getNumero(), conta.getSaldo()); // Atualiza no banco
+    }
+    
+    // Filtros e ordenações continuam funcionando na lista em memória
+    public List<ContaCorrente> filtrarContas(Predicate<ContaCorrente> criterio) {
+        return this.contas.stream().filter(criterio).collect(Collectors.toList());
+    }
+
+    public void ordenarContas(Comparator<ContaCorrente> criterio) {
+        this.contas.sort(criterio);
     }
 }
