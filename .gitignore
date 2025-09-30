@@ -1,7 +1,12 @@
-/nbproject/private/ 
-/build/ 
-/dist/ 
-/nbbuild/ 
+# Arquivos compilados do Java
+*.class
+
+# Arquivos de Log
+*.log
+
+# Configurações do NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
 /nbdist/
-/Nelson/nbproject/private/
-/Nelson/build/
+.nb-gradle/
