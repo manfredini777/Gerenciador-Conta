@@ -1,14 +1,15 @@
 package dao;
 
-// --- IMPORTS QUE ESTAVAM FALTANDO ---
 import GerenciadorContaBancaria.ContaCorrente;
+import GerenciadorContaBancaria.Movimentacao; // <-- IMPORT ADICIONADO
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp; 
+import java.time.LocalDateTime; 
 import java.util.ArrayList;
 import java.util.List;
-// --- FIM DOS IMPORTS ---
 
 public class ContaDAO {
 
@@ -47,7 +48,6 @@ public class ContaDAO {
             throw new RuntimeException("Erro ao listar contas do banco de dados", e);
         }
         
-        // Linha de debug que adicionamos antes
         System.out.println("--- [DEBUG] ContaDAO.listar(): Buscou do banco. Total de contas encontradas: " + contas.size());
         
         return contas;
@@ -101,5 +101,51 @@ public class ContaDAO {
             e.printStackTrace();
             throw new RuntimeException("Erro ao remover conta do banco de dados", e);
         }
+    }
+
+    public void inserirMovimentacao(Movimentacao movimentacao) {
+        String sql = "INSERT INTO movimentacoes (numero_conta, tipo, valor) VALUES (?, ?, ?)";
+        try (Connection conn = Conexao.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, movimentacao.getNumeroConta());
+            ps.setString(2, movimentacao.getTipo());
+            ps.setDouble(3, movimentacao.getValor());
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Erro ao inserir movimentação no banco de dados", e);
+        }
+    }
+
+   
+    public List<Movimentacao> listarExtrato(int numeroConta) {
+        String sql = "SELECT * FROM movimentacoes WHERE numero_conta = ? ORDER BY data DESC";
+        List<Movimentacao> extrato = new ArrayList<>();
+        
+        try (Connection conn = Conexao.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, numeroConta);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    String tipo = rs.getString("tipo");
+                    double valor = rs.getDouble("valor");
+                    Timestamp dataSql = rs.getTimestamp("data");
+                    LocalDateTime data = dataSql.toLocalDateTime();
+                    
+                    Movimentacao mov = new Movimentacao(numeroConta, tipo, valor);
+                    mov.setId(id);
+                    mov.setData(data);
+                    extrato.add(mov);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Erro ao listar extrato do banco de dados", e);
+        }
+        return extrato;
     }
 }

@@ -1,0 +1,4 @@
+--- Extrato da Conta: 3 - Ana Pereira ---
+-------
+
+Data: 2025-09-30 | Tipo: DEPOSITO   | Valor: R$ 1000,00

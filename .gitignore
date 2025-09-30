@@ -3,3 +3,5 @@
 /dist/ 
 /nbbuild/ 
 /nbdist/
+/Nelson/nbproject/private/
+/Nelson/build/
